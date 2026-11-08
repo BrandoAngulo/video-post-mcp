@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from .. import formato, rutas
 from ..errores import ErrorHerramienta
 from ..ffmpeg import ejecutar, nvenc_disponible, sondear
@@ -48,5 +50,9 @@ def render(proyecto: str, video: str, preset: str = "reels", lut: str | None = N
     real = sondear(destino)
     mb = destino.stat().st_size / 1_000_000
     encoder = "h264_nvenc (GPU)" if usa_nvenc else "libx264 (CPU)"
+    aviso = ""
+    if os.environ.get("USE_NVENC") == "1" and not usa_nvenc:
+        aviso = (" Aviso: USE_NVENC=1 pero la GPU no respondió y se usó la CPU; revisa que el "
+                 "contenedor tenga --gpus all y NVIDIA_DRIVER_CAPABILITIES=compute,video,utility.")
     return (f"Final: {rutas.relativa_a(carpeta, destino)} — {real.resumen()}, {mb:.1f} MB, "
-            f"encoder {encoder}{', LUT ' + lut if lut else ''}.")
+            f"encoder {encoder}{', LUT ' + lut if lut else ''}.{aviso}")

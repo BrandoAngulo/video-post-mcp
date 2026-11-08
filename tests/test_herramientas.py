@@ -194,6 +194,18 @@ def test_render_final_con_lut(proyecto):
     assert "libx264" in texto
 
 
+def test_render_avisa_si_la_gpu_no_responde(proyecto, monkeypatch):
+    from video_post_mcp import ffmpeg
+    monkeypatch.setenv("USE_NVENC", "1")
+    ffmpeg.nvenc_disponible.cache_clear()
+    try:
+        # Sin GPU en el entorno de pruebas: debe caer a CPU y decirlo.
+        texto = render(P, "fuentes/vertical.mp4", salida="salida/gpu.mp4")
+    finally:
+        ffmpeg.nvenc_disponible.cache_clear()
+    assert "libx264" in texto and "la GPU no respondió" in texto
+
+
 def test_render_no_escribe_en_fuentes(proyecto):
     with pytest.raises(ErrorHerramienta, match="solo lectura"):
         render(P, "fuentes/vertical.mp4", salida="fuentes/x.mp4")
