@@ -37,7 +37,8 @@ def render(proyecto: str, video: str, preset: str = "reels", lut: str | None = N
     usa_nvenc = nvenc_disponible()
     destino = rutas.salida(carpeta, salida or f"salida/{origen.stem}_final.mp4", sobrescribir,
                            extension=".mp4")
-    args = ["-i", str(origen), "-vf", ",".join(filtros), *(_NVENC if usa_nvenc else _X264)]
+    args = ["-i", str(origen), "-vf", ",".join(filtros), *formato.SALIDA_CFR,
+            *(_NVENC if usa_nvenc else _X264)]
     if medio.tiene_audio:
         args += ["-c:a", "aac", "-b:a", "192k", "-ar", "48000"]
     else:

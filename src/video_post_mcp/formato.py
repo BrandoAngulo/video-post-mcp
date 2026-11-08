@@ -19,8 +19,14 @@ ANCHO_SEGURO = ANCHO - 2 * MARGEN_LATERAL
 
 AJUSTES = ("recortar", "difuminar")
 
+# Salida a cuadros constantes: cada cuadro dura 1/FPS, también el último. Sin esto,
+# algunas versiones de FFmpeg (p. ej. la 7.1 de Debian) pierden la duración del
+# último cuadro tras trim/concat y el MP4 queda a 30.288 fps y un cuadro más corto.
+SALIDA_CFR = ["-fps_mode", "cfr", "-r", str(FPS)]
+
 # Intermedios casi sin pérdida: la calidad final la decide solo `render`.
-CODEC_INTERMEDIO = ["-c:v", "libx264", "-preset", "medium", "-crf", "14", "-pix_fmt", "yuv420p"]
+CODEC_INTERMEDIO = [*SALIDA_CFR, "-c:v", "libx264", "-preset", "medium", "-crf", "14",
+                    "-pix_fmt", "yuv420p"]
 AUDIO_INTERMEDIO = ["-c:a", "aac", "-b:a", "256k", "-ar", "48000"]
 
 DIR_FUENTES_INCLUIDAS = Path(os.environ.get("FONTS_DIR", Path(__file__).resolve().parents[2] / "fonts"))
