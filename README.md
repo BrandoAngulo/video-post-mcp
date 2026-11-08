@@ -68,7 +68,21 @@ Las herramientas crean las subcarpetas solas, nunca escriben en `fuentes/` y nun
 
 ### GPU (opcional)
 
-Para codificar con la GTX (NVENC) agrega a `args`, antes de `video-post-mcp`: `"--gpus", "all", "-e", "USE_NVENC=1"`. Si la GPU no responde dentro del contenedor, `render` usa la CPU automáticamente y lo informa.
+Para codificar con la GTX (NVENC) agrega a `args`, antes de `video-post-mcp`:
+
+```json
+"--gpus", "all", "-e", "NVIDIA_DRIVER_CAPABILITIES=compute,video,utility", "-e", "USE_NVENC=1",
+```
+
+`NVIDIA_DRIVER_CAPABILITIES` debe incluir `video`: sin eso el contenedor ve la GPU pero no el codificador. Prueba previa (debe listar la GPU y codificar sin errores):
+
+```powershell
+docker run --rm --gpus all -e NVIDIA_DRIVER_CAPABILITIES=compute,video,utility --entrypoint sh video-post-mcp -c "nvidia-smi -L; ffmpeg -hide_banner -f lavfi -i testsrc=s=1080x1920:d=2 -c:v h264_nvenc -f null - 2>&1 | tail -3"
+```
+
+Si la GPU no responde dentro del contenedor, `render` usa la CPU y lo avisa en su respuesta. Para confirmar con qué arrancó Claude Desktop el servidor: `docker inspect $(docker ps -q --filter ancestor=video-post-mcp) --format "{{.Config.Env}} {{.HostConfig.DeviceRequests}}"`.
+
+Nota: Claude Desktop reescribe su archivo de configuración al cerrarse y puede reordenar el formato; edítalo con la app cerrada y verifica el cambio después.
 
 ## Fuentes
 
