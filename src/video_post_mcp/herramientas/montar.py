@@ -52,22 +52,32 @@ def montar(proyecto: str, cortes: list[Corte], salida: str = "trabajo/montaje.mp
         fin = min(corte.fin, medio.duracion)
         largo = round(fin - corte.inicio, 3)
 
-        # -ss/-t en la entrada + recodificación = corte exacto al cuadro.
-        entradas += ["-ss", f"{corte.inicio:.3f}", "-t", f"{largo:.3f}", "-i", str(origen)]
-        filtros.append(formato.cadena_normalizar(f"{i}:v", f"v{i}", ajuste))
+        # Cada corte se fija a la rejilla de cuadros de la salida a partir del tiempo
+        # acumulado: así los redondeos (p. ej. al pasar de 24 a 30 fps) no se suman
+        # y cada corte cae donde se pidió (importante para cortar en los golpes).
+        cuadro_ini = round(acumulado * formato.FPS)
+        cuadro_fin = round((acumulado + largo) * formato.FPS)
+        n_cuadros = max(cuadro_fin - cuadro_ini, 1)
+        largo_real = n_cuadros / formato.FPS
+
+        entradas += ["-ss", f"{corte.inicio:.3f}", "-t", f"{largo + 0.2:.3f}", "-i", str(origen)]
+        filtros.append(formato.cadena_normalizar(f"{i}:v", f"n{i}", ajuste))
+        filtros.append(f"[n{i}]tpad=stop_mode=clone:stop=6,trim=end_frame={n_cuadros},"
+                       f"setpts=PTS-STARTPTS[v{i}]")
         etiqueta = f"[v{i}]"
         if conservar_audio:
             if medio.tiene_audio:
                 filtros.append(
                     f"[{i}:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,"
-                    f"apad,atrim=0:{largo},asetpts=PTS-STARTPTS[a{i}]"
+                    f"apad,atrim=0:{largo_real},asetpts=PTS-STARTPTS[a{i}]"
                 )
             else:
-                filtros.append(f"anullsrc=r=48000:cl=stereo,atrim=0:{largo}[a{i}]")
+                filtros.append(f"anullsrc=r=48000:cl=stereo,atrim=0:{largo_real}[a{i}]")
             etiqueta += f"[a{i}]"
         etiquetas.append(etiqueta)
         linea_tiempo.append(
-            f"{i + 1}. {acumulado:6.2f}–{acumulado + largo:6.2f} s ← {corte.archivo} "
+            f"{i + 1}. {cuadro_ini / formato.FPS:6.2f}–{cuadro_fin / formato.FPS:6.2f} s "
+            f"← {corte.archivo} "
             f"[{corte.inicio:.2f}–{fin:.2f}]"
         )
         acumulado += largo

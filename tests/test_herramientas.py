@@ -97,6 +97,17 @@ def test_montar_normaliza_y_corta_exacto(proyecto):
     assert "2.00–  3.50" in resumen  # el segundo corte arranca en 2.00 s
 
 
+def test_montar_no_acumula_desfase_al_cambiar_fps(proyecto):
+    # Clip fuente a 24 fps con cortes que no caen en su rejilla de cuadros:
+    # la duración total debe ser la suma pedida, sin el redondeo acumulado.
+    largos = [2.07, 1.99, 2.25, 1.99, 2.93]
+    cortes = [Corte("fuentes/horizontal.mp4", 0.1, 0.1 + largo) for largo in largos]
+    resumen = montar(P, cortes)
+    m = _medio(proyecto, "trabajo/montaje.mp4")
+    assert m.duracion == pytest.approx(sum(largos), abs=1 / 30 + 0.01)
+    assert "8.30– 11.23" in resumen  # el último corte arranca en la suma de los anteriores
+
+
 def test_montar_conservando_audio_con_clip_mudo(proyecto):
     montar(P, [Corte("fuentes/horizontal.mp4", 0, 1), Corte("fuentes/vertical.mp4", 0, 1)],
            conservar_audio=True)
