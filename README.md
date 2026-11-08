@@ -45,7 +45,11 @@ Las herramientas crean las subcarpetas solas, nunca escriben en `fuentes/` y nun
    docker build --target pruebas -t video-post-mcp:pruebas .   # corre las pruebas
    docker build -t video-post-mcp .
    ```
-4. **Conectar a Claude Desktop**: edita `%APPDATA%\Claude\claude_desktop_config.json` y agrega (si la carpeta de medios está en otro lugar, cambia la ruta del `-v`):
+4. **Conectar a Claude Desktop**: abre el archivo con *Configuración → Desarrollador → Editar configuración*, que siempre lleva al archivo que la app lee. La ruta cambia según la instalación:
+   - Instalador clásico: `%APPDATA%\Claude\claude_desktop_config.json`
+   - Versión empaquetada (MSIX), en este PC: `%LOCALAPPDATA%\Claude-Data\claude_pzs8sxrjxfjjc\claude_desktop_config.json`. Ignora `%LOCALAPPDATA%\Packages\Claude_*\...\Claude-3p`: es el modo de proveedores externos.
+
+   Si el archivo ya tiene contenido, no lo reemplaces: agrega solo la clave `mcpServers` (si la carpeta de medios está en otro lugar, cambia la ruta del `-v`):
    ```json
    {
      "mcpServers": {
@@ -60,7 +64,7 @@ Las herramientas crean las subcarpetas solas, nunca escriben en `fuentes/` y nun
      }
    }
    ```
-5. Reinicia Claude Desktop. Las herramientas aparecen como `video-post`. También quedan disponibles desde el chat del celular mientras el PC y Claude Desktop estén abiertos.
+5. Cierra Claude Desktop por completo (también desde el ícono junto al reloj) con Docker Desktop abierto, y vuelve a abrirlo; solo lee la configuración al arrancar. Las herramientas aparecen como `video-post`. También quedan disponibles desde el chat del celular mientras el PC y Claude Desktop estén abiertos.
 
 ### GPU (opcional)
 
