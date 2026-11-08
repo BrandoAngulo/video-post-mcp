@@ -18,7 +18,7 @@ Arquitectura y decisiones: [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md).
 
 ## Carpeta de medios
 
-Un proyecto por carpeta dentro de la carpeta de medios (en este PC: `Documentos\audiovisual`):
+Un proyecto por carpeta dentro de la carpeta de medios (en este PC: `C:\Users\stivn\Documents\audiovisual`):
 
 ```
 audiovisual/
@@ -45,7 +45,7 @@ Las herramientas crean las subcarpetas solas, nunca escriben en `fuentes/` y nun
    docker build --target pruebas -t video-post-mcp:pruebas .   # corre las pruebas
    docker build -t video-post-mcp .
    ```
-4. **Conectar a Claude Desktop**: edita `%APPDATA%\Claude\claude_desktop_config.json` y agrega (cambia `TU_USUARIO` y la ruta si tu carpeta está en otro lugar):
+4. **Conectar a Claude Desktop**: edita `%APPDATA%\Claude\claude_desktop_config.json` y agrega (si la carpeta de medios está en otro lugar, cambia la ruta del `-v`):
    ```json
    {
      "mcpServers": {
@@ -53,7 +53,7 @@ Las herramientas crean las subcarpetas solas, nunca escriben en `fuentes/` y nun
          "command": "docker",
          "args": [
            "run", "-i", "--rm", "--network", "none", "--memory", "1536m",
-           "-v", "C:\\Users\\TU_USUARIO\\Documents\\audiovisual:/media",
+           "-v", "C:\\Users\\stivn\\Documents\\audiovisual:/media",
            "video-post-mcp"
          ]
        }
