@@ -63,6 +63,11 @@ class TextoIn(BaseModel):
         description="Fuente incluida (Montserrat-SemiBold, Montserrat-Bold, Montserrat-Regular) "
         "o archivo del proyecto (ej. 'fuentes/marca.otf'). Por defecto Montserrat-SemiBold.",
     )
+    desplazamiento: int = Field(
+        0,
+        description="Píxeles para mover el texto desde su posición (positivo baja, negativo sube). "
+        "Útil para apilar dos textos o esquivar el producto; no puede salir de la zona segura.",
+    )
 
 
 class LogoIn(BaseModel):

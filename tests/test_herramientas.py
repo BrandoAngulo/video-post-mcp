@@ -151,6 +151,19 @@ def test_texto_con_fuente_del_proyecto(proyecto):
     assert (proyecto / "trabajo" / "marca.mp4").is_file()
 
 
+def test_texto_apilado_con_desplazamiento(proyecto):
+    texto_y_logo(P, "fuentes/vertical.mp4", [
+        Texto("Oud for Glory", 0, 2, "arriba", 72),
+        Texto("Pídelo por WhatsApp", 0, 2, "arriba", 56, desplazamiento=100),
+    ], salida="trabajo/apilado.mp4")
+    assert (proyecto / "trabajo" / "apilado.mp4").is_file()
+
+
+def test_texto_desplazamiento_fuera_de_zona_segura(proyecto):
+    with pytest.raises(ErrorHerramienta, match="zona segura"):
+        texto_y_logo(P, "fuentes/vertical.mp4", [Texto("x", 0, 1, "arriba", desplazamiento=-100)])
+
+
 def test_texto_fuente_inexistente(proyecto):
     with pytest.raises(ErrorHerramienta, match="no encontrada"):
         texto_y_logo(P, "fuentes/vertical.mp4", [Texto("x", 0, 1, fuente="Comic-Sans")])

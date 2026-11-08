@@ -29,6 +29,7 @@ class Texto:
     sombra: bool = True
     fundido: float = 0.3
     fuente: str | None = None
+    desplazamiento: int = 0  # px; positivo baja el texto, negativo lo sube
 
 
 @dataclass(frozen=True)
@@ -71,16 +72,26 @@ def _alpha(t: Texto) -> str:
             f"if(lt(t,{b - f}),1,if(lt(t,{b}),({b}-t)/{f},0))))")
 
 
-def _y_lineas(posicion: str, n_lineas: int, tamano: int) -> list[int]:
+def _y_lineas(posicion: str, n_lineas: int, tamano: int, desplazamiento: int = 0) -> list[int]:
     """Y de cada línea. Cada línea se dibuja aparte para centrarla por separado
-    (drawtext alinea a la izquierda dentro de un bloque multilínea)."""
+    (drawtext alinea a la izquierda dentro de un bloque multilínea).
+
+    `desplazamiento` mueve el bloque sin salir de las zonas seguras: sirve para
+    apilar dos textos (p. ej. nombre y CTA arriba) o esquivar el producto."""
     alto_linea = round(tamano * 1.25)
     alto_bloque = n_lineas * alto_linea
     inicio = {
         "arriba": formato.MARGEN_SUPERIOR,
         "centro": (formato.ALTO - alto_bloque) // 2,
         "abajo": formato.ALTO - formato.MARGEN_INFERIOR - alto_bloque,
-    }[posicion]
+    }[posicion] + desplazamiento
+    minimo = formato.MARGEN_SUPERIOR
+    maximo = formato.ALTO - formato.MARGEN_INFERIOR - alto_bloque
+    if not minimo <= inicio <= maximo:
+        raise ErrorHerramienta(
+            f"Con desplazamiento={desplazamiento} el texto sale de la zona segura "
+            f"(su borde superior debe quedar entre {minimo} y {maximo} px)."
+        )
     return [inicio + k * alto_linea for k in range(n_lineas)]
 
 
@@ -142,8 +153,8 @@ def texto_y_logo(proyecto: str, video: str, textos: list[Texto] | None = None,
 
             lineas = [linea.strip() for linea in t.texto.splitlines() if linea.strip()]
             sombra = ":shadowcolor=black@0.6:shadowx=3:shadowy=3" if t.sombra else ""
-            for k, (linea, y) in enumerate(zip(lineas, _y_lineas(t.posicion, len(lineas),
-                                                                    t.tamano))):
+            ys = _y_lineas(t.posicion, len(lineas), t.tamano, t.desplazamiento)
+            for k, (linea, y) in enumerate(zip(lineas, ys)):
                 # Archivo de texto: evita el escape frágil de drawtext con tildes y signos.
                 archivo_txt = Path(tmp) / f"t{i}_{k}.txt"
                 archivo_txt.write_text(linea, encoding="utf-8")
