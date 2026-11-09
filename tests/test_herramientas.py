@@ -44,6 +44,17 @@ def test_extraer_cuadros(proyecto):
         assert sondear(c.ruta).ancho == 320
 
 
+def test_extraer_cuadros_de_video_en_rango_tv(proyecto):
+    # Los videos de Veo vienen marcados como rango limitado (TV) y bt709.
+    import subprocess
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "lavfi",
+                    "-i", "testsrc=s=720x1280:r=24:d=3", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                    "-color_range", "tv", "-colorspace", "bt709", "-color_primaries", "bt709",
+                    "-color_trc", "bt709", str(proyecto / "fuentes" / "veo.mp4")], check=True)
+    cuadros = extraer_cuadros(P, "fuentes/veo.mp4", [0.5, 1.5, 2.5], ancho=256)
+    assert len(cuadros) == 3 and all(c.ruta.stat().st_size > 0 for c in cuadros)
+
+
 def test_extraer_cuadros_de_imagen(proyecto):
     [c] = extraer_cuadros(P, "fuentes/foto.jpg", [])
     assert c.segundo is None and sondear(c.ruta).ancho == 512
